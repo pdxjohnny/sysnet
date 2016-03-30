@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/memberlist"
 	"github.com/spf13/viper"
@@ -22,7 +23,7 @@ const (
 
 func main() {
 	// Set config defaults
-	viper.SetDefault("host", "localhost")
+	viper.SetDefault("hosts", []string{"localhost"})
 	viper.SetDefault("net", WAN)
 	viper.SetDefault("configType", "yaml")
 
@@ -66,8 +67,12 @@ func main() {
 		log.Fatal("Failed to create memberlist: " + err.Error())
 	}
 
+	// Make sure that hosts is formated correctly
+	if !strings.Contains(viper.GetString("hosts"), " ") {
+		log.Println("Make sure to seperate hosts with spaces")
+	}
 	// Join an existing cluster by specifying at least one known member
-	n, err := list.Join([]string{viper.GetString("host")})
+	n, err := list.Join(viper.GetStringSlice("hosts"))
 	if err != nil {
 		log.Fatal("Failed to join cluster: " + err.Error())
 	}
